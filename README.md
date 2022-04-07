@@ -1,5 +1,5 @@
 # wgz
-Compression - Wonderful Gnu Zip
+Compression - Wonderful Gnu Zip (Zap: Zip Application)
 
 # WGZ File Format
 
