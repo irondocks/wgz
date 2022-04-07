@@ -13,7 +13,7 @@ WGZ loads 128 bytes at a time (as of this README modification [4/7/2022])
 
 It counts out the 0-15 0s and 1s needed to recognize the value. Considering, this may seem unintelligible, literally, moronic.
 
-But fortunately, This is not the case. The bbit ucket actually wraps in 1-15 bits. This is stellar.
+But fortunately, This is not the case. The bit bucket actually wraps in 1-15 bits. This is stellar.
 
 Because of this limit, it can be run on any file exemplfying upto 4% compressed value.
 
