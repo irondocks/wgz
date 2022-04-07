@@ -2,12 +2,12 @@
 $time = time();
 echo date("H:i:s",$time);
 
-$infile = "enwik9";
+$infile = "out4.txt";
 
 $fp = fopen($infile,"r");
 $read_ex = fread($fp,filesize($infile));
 
-$outfile = "out.wgz";
+$outfile = "out.txt";
 
 touch($outfile);
 unlink($outfile);
@@ -21,6 +21,34 @@ $eaA = [];
 $m = 0;
 $time = 0;
 $b = "";
+
+function backFire($read_ex)
+{
+    global $outfile;
+    //echo $read_ex;
+    $x = explode("0", $read_ex);
+    $c = 0;
+    $z = 0;
+    $out = "";
+    foreach ($x as $y)
+    {
+        if (strlen($out) == 128)
+        {
+            file_put_contents($outfile, $out, FILE_APPEND);
+            return $out;
+        }
+        $z += strlen($y);
+        if ($c%2 == 1) {
+            $out .= chr($z);
+            $z = 0;
+        }
+        $z <<= 4;
+        $c++;
+    }
+    file_put_contents($outfile, $out, FILE_APPEND);
+    return $out;
+}
+
 function convert(string $m, int $insert, array $binarr)
 {
     // relegate to binary
@@ -29,30 +57,37 @@ function convert(string $m, int $insert, array $binarr)
     $t = "";
     while (strlen($m) > $x)
     {
-        $v = decbin($m[$x]);
-        $t .= $v;
-        while (strlen($t) > $insert-1 || ($t != "" && strlen($t) < $insert-1 && $x + 1 == strlen($m)))
-        {
-            $f_check = strlen($f);
-            foreach ($binarr as $c)
-            {
-                if (substr($t,0,$insert) == ($c))
-                {
-                    $f .= "0";
-                    break;
-                }
-                else
-                {
-                    $f .= "1";
-                }
-            }
-            if (strlen($f) == $f_check)
-                exit();
-            $t = substr($t,$insert);
-        }
+        $v = decbin(ord($m[$x]));
+        $t .= substr($v,0,4);//str_repeat("0",4-strlen(substr($v,0,4))) . substr($v,0,4);
+        $t .= substr($v,4);//str_repeat("0",4-strlen(substr($v,4))) . substr($v,4);
         $x++;
     }
+    while ($t != "")
+    {
+        $f_check = strlen($f);
+        foreach ($binarr as $c)
+        {
+            if (substr($t,0,$insert) == ($c))
+            {
+                $f .= "0";
+                break;
+            }
+            else
+            {
+                $f .= "1";
+            }
+        }
+        if (strlen($f) == $f_check)
+            exit();
+        $t = substr($t,$insert);
+    }
 
+    $n = backFire($f);
+    echo ".";
+    if ($m != $n)
+    {
+        echo "\r\n$m\r\n$n\r\n";
+    }
     $b = "";
     $f = str_split($f,8);
     foreach ($f as $r)
@@ -63,13 +98,14 @@ function convert(string $m, int $insert, array $binarr)
 }
 
 $readin = str_split($read_ex,128);
+
 $i = 0;
 $j = 0;
 $insert = 4;
 
-for ($d = 1 ; $d <= pow(2,$insert) ; $d++)
+for ($d = 0 ; $d < pow(2,$insert) ; $d++)
 {
-    $binarr[] = decbin($d-1);
+    $binarr[] = ($d == 0) ? str_repeat("0",$insert) : str_repeat("0",4-strlen(decbin($d))) . decbin($d);
 }
 $b = "";
 foreach ($readin as $m)
