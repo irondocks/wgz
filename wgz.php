@@ -1,6 +1,6 @@
 <?php
 $time = time();
-echo date("H:i:s",$time);
+//echo date("H:i:s",$time);
 
 $infile = "out4.txt";
 
@@ -11,8 +11,13 @@ $outfile = "out.txt";
 
 touch($outfile);
 unlink($outfile);
+
+$zipfile = "zip.txt";
+
+touch($zipfile);
+unlink($zipfile);
 $diff = time();
-echo date("H:i:s",time()-$time)."\r\n";
+echo date("s",time()-$time)."\r\n";
 
 $gsize = 0; 
 
@@ -21,18 +26,20 @@ $eaA = [];
 $m = 0;
 $time = 0;
 $b = "";
+$byte_saturation = 32;
 
 function backFire($read_ex)
 {
     global $outfile;
+    global $byte_saturation;
     //echo $read_ex;
-    $x = explode("01", $read_ex);
+    $x = explode("0", $read_ex);
     $c = 0;
     $z = 0;
     $out = "";
     $t = [];
     foreach ($x as $y)
-        $t[] = (strlen($y) == 0 || $y == "") ? "0" : strlen($y);
+        $t[] = (strlen($y) == 0 || $y == "") ? 0 : strlen($y);
     foreach ($t as $y)
     {
         $z <<= 4;
@@ -41,12 +48,12 @@ function backFire($read_ex)
             $out .= chr($z%256);
             $z = 0; 
         }
-        if (strlen($out) == 128)
+        $c++;
+        if (strlen($out) == $byte_saturation)
         {
             file_put_contents($outfile, $out, FILE_APPEND);
             return array_slice($x,$c);
         }
-        $c++;
     }
     file_put_contents($outfile, $out, FILE_APPEND);
     return [];
@@ -54,6 +61,8 @@ function backFire($read_ex)
 
 function convert(string $m, int $insert, array $binarr)
 {
+    global $zipfile;
+    global $outfile;
     // relegate to binary
     $x = 0;
     $f = "";
@@ -70,9 +79,9 @@ function convert(string $m, int $insert, array $binarr)
         $f_check = strlen($f);
         foreach ($binarr as $c)
         {
-            if (substr($t,0,$insert) == ($c))
+            if (bindec(substr($t,0,$insert)) == bindec($c))
             {
-                $f .= "01";
+                $f .= "0";
                 break;
             }
             else
@@ -85,17 +94,18 @@ function convert(string $m, int $insert, array $binarr)
         $t = substr($t,$insert);
     }
 
-    $n = backFire($f);
+    //$n = backFire($f);
     $b = "";
     $f = str_split($f,8);
     foreach ($f as $r)
     {
         $b .= chr(bindec($r));
     }
+    file_put_contents($zipfile, $b, FILE_APPEND);
     return implode("",$n);
 }
 
-$readin = str_split($read_ex,128);
+$readin = str_split($read_ex,$byte_saturation);
 
 $i = 1;
 $j = 0;
